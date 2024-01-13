@@ -1,9 +1,11 @@
 import { Prop, Schema, SchemaFactory } from '@nestjs/mongoose';
+import * as mongoose from 'mongoose';
 import { HydratedDocument } from 'mongoose';
 import {
   GenderEnum,
   RelationshipStatusEnum,
   RolesEnum,
+  StatusEnum,
 } from 'src/core/interfaces/user.interfaces';
 
 export type UserDocument = HydratedDocument<User>;
@@ -39,29 +41,14 @@ export class User {
   @Prop({ required: true, trim: true })
   gender: GenderEnum;
 
-  @Prop()
-  emergencyContactName: string;
-
-  @Prop()
-  emergencyContactNumber: string;
-
-  @Prop()
-  emergencyContactAddress: string;
-
   @Prop({ required: true })
   profilePicture: string;
 
   @Prop({ required: true })
   dateOfBirth: Date;
 
-  @Prop()
+  @Prop({ required: true })
   relationshipStatus: RelationshipStatusEnum;
-
-  @Prop({ default: undefined })
-  existingMedicalConditions: string[];
-
-  @Prop({ default: undefined })
-  allergies: string[];
 
   @Prop({ default: false })
   verified: boolean;
@@ -79,8 +66,36 @@ export class User {
   @Prop({ required: true })
   role: RolesEnum;
 
+  @Prop({ required: true })
+  nationality: string;
+
+  @Prop({ required: true })
+  state: string;
+
+  @Prop({ required: true })
+  lga: string;
+
+  @Prop({
+    ref: 'Department',
+    type: mongoose.Schema.Types.ObjectId,
+    default: undefined,
+  })
+  department?: mongoose.Types.ObjectId;
+
   @Prop()
-  specialty: string;
+  yearOfAdmission?: number;
+
+  @Prop({ required: true })
+  status: StatusEnum;
+
+  @Prop({ type: mongoose.Schema.Types.Mixed, default: undefined })
+  registrationStatus?: Record<string, string[]>;
+
+  @Prop()
+  otpToken: string;
+
+  @Prop()
+  otpTokenExpires: Date;
 
   @Prop()
   verificationToken: string;

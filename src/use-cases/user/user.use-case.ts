@@ -1,9 +1,14 @@
 import { Injectable } from '@nestjs/common';
 import { IDataServices, User } from 'src/core';
 import { UserFactoryService } from './user-factory.service';
-import { CreateUserDto, UpdateUserDto } from 'src/core/dto';
+import {
+  CreateTeacherOrStudentDto,
+  CreateUserDto,
+  UpdateUserDto,
+} from 'src/core/dto';
 import { MailService } from 'src/frameworks/mail/mail.service';
 import { UpdatePasswordDto } from 'src/core/dto/auth.dto';
+import { Types } from 'mongoose';
 
 @Injectable()
 export class UserUseCases {
@@ -18,6 +23,22 @@ export class UserUseCases {
     file: Express.Multer.File,
   ): Promise<User> {
     const user = await this.userFactoryService.createNewUsers(
+      createUserDto,
+      file,
+    );
+
+    const createdUser = await this.dataService.users.create(user);
+
+    await this.mailService.sendVerifyEmail(user, user.verificationToken);
+
+    return createdUser;
+  }
+
+  async createTeacherOrStudent(
+    createUserDto: CreateTeacherOrStudentDto,
+    file: Express.Multer.File,
+  ): Promise<User> {
+    const user = await this.userFactoryService.createTeacherOrStudent(
       createUserDto,
       file,
     );
@@ -53,7 +74,7 @@ export class UserUseCases {
   async updateUser(
     updateUserDto: UpdateUserDto,
     file: Express.Multer.File,
-    id: string,
+    id: Types.ObjectId,
   ) {
     const user = await this.userFactoryService.updateUser(
       updateUserDto,
@@ -63,7 +84,10 @@ export class UserUseCases {
     console.log(user);
     return user.toJSON();
   }
-  async updatePassword(updatePasswordDto: UpdatePasswordDto, id: string) {
+  async updatePassword(
+    updatePasswordDto: UpdatePasswordDto,
+    id: Types.ObjectId,
+  ) {
     const user = await this.userFactoryService.updatePassword(
       updatePasswordDto,
       id,

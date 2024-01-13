@@ -1,5 +1,9 @@
 import { User } from '../../core/entities';
-import { CreateUserDto, UpdateUserDto } from '../../core/dto';
+import {
+  CreateTeacherOrStudentDto,
+  CreateUserDto,
+  UpdateUserDto,
+} from '../../core/dto';
 import {
   BadRequestException,
   Injectable,
@@ -10,6 +14,13 @@ import { AwsService } from 'src/frameworks/aws/aws.service';
 import * as bcrypt from 'bcrypt';
 import { HelperService } from 'src/frameworks/helper-services/helper/helper.service';
 import { UpdatePasswordDto } from 'src/core/dto/auth.dto';
+import { Types } from 'mongoose';
+import {
+  RegistrationStatusEnum,
+  RolesEnum,
+  StatusEnum,
+} from 'src/core/interfaces/user.interfaces';
+
 @Injectable()
 export class UserFactoryService {
   constructor(
@@ -57,7 +68,76 @@ export class UserFactoryService {
       await this.helperService.generateVerificationToken();
 
     newUser.verificationToken = verificationToken;
+    newUser.status = StatusEnum.Inactive;
 
+    for (const key in createUserDto) {
+      newUser[key] = createUserDto[key];
+    }
+    return newUser;
+  }
+
+  async createTeacherOrStudent(
+    createUserDto: CreateTeacherOrStudentDto,
+    file: Express.Multer.File,
+  ) {
+    const userExists = await this.dataService.users.findOne({
+      email: createUserDto.email,
+    });
+
+    if (userExists) {
+      throw new BadRequestException(
+        `User with email: ${createUserDto.email} already exists`,
+      );
+    }
+
+    let profilePicture: string;
+    if (file) {
+      try {
+        profilePicture = await this.awsService.uploadSingleFile(file);
+      } catch (error) {
+        throw new InternalServerErrorException(
+          `Something went wrong while uploading the picture`,
+        );
+      }
+    } else {
+      profilePicture = 'http://www.gravatar.com/avatar/?d=mp';
+    }
+    createUserDto.profilePicture = profilePicture;
+
+    const salt = await bcrypt.genSalt(13);
+
+    const hashedPassword = await bcrypt.hash(createUserDto.password, salt);
+
+    createUserDto.password = hashedPassword;
+
+    const newUser = new User();
+
+    const verificationToken =
+      await this.helperService.generateVerificationToken();
+
+    newUser.verificationToken = verificationToken;
+    newUser.status = StatusEnum.Inactive;
+
+    if (createUserDto.role === RolesEnum.Student) {
+      const department = await this.dataService.departments.findById(
+        createUserDto.department,
+      );
+      if (!department) {
+        throw new BadRequestException('Department Not Found');
+      }
+
+      const departmentYears = department.yearsTaken;
+
+      const registrationStatus = {};
+      for (let i = 0; i < departmentYears; i++) {
+        registrationStatus[
+          `${Number(createUserDto.yearOfAdmission) + i}-${
+            Number(createUserDto.yearOfAdmission) + i + 1
+          }`
+        ] = [RegistrationStatusEnum.Not_Registered];
+      }
+      newUser.registrationStatus = registrationStatus;
+    }
     for (const key in createUserDto) {
       newUser[key] = createUserDto[key];
     }
@@ -74,6 +154,7 @@ export class UserFactoryService {
       );
     }
     existingUser.verified = true;
+    existingUser.status = StatusEnum.Active;
     existingUser.verificationToken = undefined;
     await existingUser.save();
 
@@ -128,7 +209,7 @@ export class UserFactoryService {
   async updateUser(
     updateUserDto: UpdateUserDto,
     file: Express.Multer.File,
-    id: string,
+    id: Types.ObjectId,
   ) {
     const user = await this.dataService.users.findById(id);
     if (!user) {
@@ -149,7 +230,10 @@ export class UserFactoryService {
     return await this.dataService.users.update(id, updateUserDto);
   }
 
-  async updatePassword(updatePasswordDto: UpdatePasswordDto, id: string) {
+  async updatePassword(
+    updatePasswordDto: UpdatePasswordDto,
+    id: Types.ObjectId,
+  ) {
     const user = await this.dataService.users.findById(id);
     if (!user) {
       throw new BadRequestException(`User not found`);

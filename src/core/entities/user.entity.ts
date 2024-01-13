@@ -1,7 +1,9 @@
+import { Types } from 'mongoose';
 import {
   GenderEnum,
   RelationshipStatusEnum,
   RolesEnum,
+  StatusEnum,
 } from 'src/core/interfaces/user.interfaces';
 
 export class User {
@@ -17,23 +19,15 @@ export class User {
 
   gender: GenderEnum;
 
-  emergencyContactName: string;
-
-  emergencyContactNumber: string;
-
-  emergencyContactAddress: string;
-
   profilePicture: string;
 
   dateOfBirth: Date;
 
   relationshipStatus: RelationshipStatusEnum;
 
-  existingMedicalConditions: string[];
-
-  allergies: string[];
-
   verified: boolean;
+
+  status: StatusEnum;
 
   email: string;
 
@@ -41,9 +35,25 @@ export class User {
 
   role: RolesEnum;
 
-  specialty: string;
+  nationality: string;
+
+  state: string;
+
+  lga: string;
+
+  department?: Types.ObjectId;
+
+  school?: Types.ObjectId;
+
+  registrationStatus?: Record<string, string[]>;
+
+  yearOfAdmission?: number;
 
   verificationToken: string;
+
+  otpToken: string;
+
+  otpTokenExpires: Date;
 
   resetPasswordToken: string;
 
