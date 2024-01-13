@@ -1,5 +1,6 @@
 import { ApiProperty } from '@nestjs/swagger';
-import { IsEmail, IsNotEmpty, IsString } from 'class-validator';
+import { IsEmail, IsMongoId, IsNotEmpty, IsString } from 'class-validator';
+import { Types } from 'mongoose';
 
 export class LoginDto {
   @ApiProperty({ required: true })
@@ -35,6 +36,11 @@ export class ForgotPasswordDto {
   @ApiProperty({ required: true })
   @IsEmail()
   email: string;
+}
+
+export class IdParamsDto {
+  @IsMongoId()
+  id: Types.ObjectId;
 }
 
 export class RefreshDto {

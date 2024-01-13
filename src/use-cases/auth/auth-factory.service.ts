@@ -7,6 +7,8 @@ import {
 import { JwtService } from '@nestjs/jwt';
 import { IDataServices, User } from 'src/core';
 import * as bcrypt from 'bcrypt';
+import { Types } from 'mongoose';
+import { StatusEnum } from 'src/core/interfaces/user.interfaces';
 @Injectable()
 export class AuthFactoryService {
   constructor(
@@ -28,7 +30,6 @@ export class AuthFactoryService {
       email: email,
     });
 
-    console.log(userExists);
     if (!userExists) {
       throw new BadRequestException(
         `User with email: ${email} does not exists`,
@@ -38,6 +39,11 @@ export class AuthFactoryService {
     if (!userExists.verified) {
       throw new UnauthorizedException('Please verify your email');
     }
+    if (userExists.status === StatusEnum.Inactive) {
+      throw new UnauthorizedException(
+        'Your credentials are inactive please reach out to the admin',
+      );
+    }
     if (userExists && (await bcrypt.compare(password, userExists.password))) {
       const result = userExists.toJSON();
       return result;
@@ -45,12 +51,13 @@ export class AuthFactoryService {
       throw new BadRequestException(`Password is incorrect`);
     }
   }
-  async login(user: User) {
+  async login(user: User & { _id: Types.ObjectId }) {
     const payload = {
       email: user.email,
       role: user.role,
       firstName: user.firstName,
       lastName: user.lastName,
+      id: user._id,
     };
 
     const accessToken = await this.generateJwtToken(payload);
@@ -61,12 +68,13 @@ export class AuthFactoryService {
     return { accessToken, refreshToken };
   }
 
-  async refreshToken(user: User) {
+  async refreshToken(user: User & { _id: Types.ObjectId }) {
     const payload = {
       email: user.email,
       role: user.role,
       firstname: user.firstName,
       lastName: user.lastName,
+      id: user._id,
     };
     const accessToken = await this.generateJwtToken(payload);
 

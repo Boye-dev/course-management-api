@@ -19,8 +19,10 @@ async function bootstrap() {
   app.enableCors(corsOptions);
 
   const config = new DocumentBuilder()
-    .setTitle('Template Api')
-    .setDescription('This is the api documentation for template')
+    .setTitle('Course Management System Api')
+    .setDescription(
+      'This is the api documentation for Course Management System ',
+    )
     .setVersion('1.0')
     .addBearerAuth(
       { type: 'http', scheme: 'bearer', bearerFormat: 'JWT' },

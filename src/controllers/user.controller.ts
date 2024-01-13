@@ -10,12 +10,22 @@ import {
   Patch,
   UseGuards,
 } from '@nestjs/common';
-
 import { FileInterceptor } from '@nestjs/platform-express';
-import { ApiBearerAuth, ApiBody, ApiConsumes, ApiTags } from '@nestjs/swagger';
-import { CreateUserDto, UpdateUserDto } from 'src/core/dto';
+import {
+  ApiBearerAuth,
+  ApiBody,
+  ApiConsumes,
+  ApiParam,
+  ApiTags,
+} from '@nestjs/swagger';
+import {
+  CreateTeacherOrStudentDto,
+  CreateUserDto,
+  UpdateUserDto,
+} from 'src/core/dto';
 import {
   ForgotPasswordDto,
+  IdParamsDto,
   ResetPasswordDto,
   UpdatePasswordDto,
 } from 'src/core/dto/auth.dto';
@@ -29,12 +39,12 @@ export class UserController {
   constructor(private userUseCases: UserUseCases) {}
 
   @ApiConsumes('multipart/form-data')
-  @Post()
-  @UseInterceptors(FileInterceptor('profilePicture'))
   @ApiBody({
     type: CreateUserDto,
     description: 'Json structure for user object',
   })
+  @Post('admin')
+  @UseInterceptors(FileInterceptor('profilePicture'))
   async create(
     @Body() createUserDto: CreateUserDto,
     @UploadedFile() file: Express.Multer.File,
@@ -48,6 +58,28 @@ export class UserController {
       );
     }
   }
+
+  @ApiConsumes('multipart/form-data')
+  @ApiBody({
+    type: CreateTeacherOrStudentDto,
+    description: 'Json structure for user object',
+  })
+  @Post()
+  @UseInterceptors(FileInterceptor('profilePicture'))
+  async createTeacherOrStudent(
+    @Body() createUserDto: CreateTeacherOrStudentDto,
+    @UploadedFile() file: Express.Multer.File,
+  ) {
+    try {
+      return this.userUseCases.createTeacherOrStudent(createUserDto, file);
+    } catch (error) {
+      console.log(error);
+      throw new InternalServerErrorException(
+        'Something went wrong while creating the user',
+      );
+    }
+  }
+
   @ApiBody({
     type: ForgotPasswordDto,
     description: 'Json structure for user object',
@@ -66,6 +98,7 @@ export class UserController {
     type: ResetPasswordDto,
     description: 'Json structure for user object',
   })
+  @ApiParam({ name: 'token' })
   @Patch('reset-password/:token')
   async resetPassword(
     @Body('password') password: string,
@@ -83,11 +116,13 @@ export class UserController {
     type: UpdatePasswordDto,
     description: 'Json structure for user object',
   })
+  @ApiParam({ name: 'id' })
   @Patch('update-password/:id')
   async updatePassword(
     @Body() updatePasswordDto: UpdatePasswordDto,
-    @Param('id') id: string,
+    @Param() params: IdParamsDto,
   ) {
+    const { id } = params;
     try {
       return this.userUseCases.updatePassword(updatePasswordDto, id);
     } catch (error) {
@@ -101,14 +136,17 @@ export class UserController {
     type: UpdateUserDto,
     description: 'Json structure for user object',
   })
+  @ApiParam({ name: 'id' })
   @UseGuards(JwtGuard)
   @Patch(':id')
   @UseInterceptors(FileInterceptor('profilePicture'))
   async updateUser(
     @Body() updateUserDto: UpdateUserDto,
     @UploadedFile() file: Express.Multer.File,
-    @Param('id') id: string,
+    @Param() params: IdParamsDto,
   ) {
+    const { id } = params;
+
     try {
       return this.userUseCases.updateUser(updateUserDto, file, id);
     } catch (error) {

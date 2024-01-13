@@ -1,6 +1,7 @@
 import { HydratedDocument, Model } from 'mongoose';
 import { IGenericRepository } from '../../../core';
 import { QueryDto } from 'src/core/dto/query.dto';
+import { Types } from 'mongoose';
 
 export class MongoGenericRepository<T> implements IGenericRepository<T> {
   private _repository: Model<T>;
@@ -68,24 +69,23 @@ export class MongoGenericRepository<T> implements IGenericRepository<T> {
     }
   }
 
-  findById(id: string): Promise<HydratedDocument<T>> {
+  findById(id: Types.ObjectId): Promise<HydratedDocument<T>> {
     return this._repository.findById(id);
   }
 
   findOne(param: Partial<T>): Promise<HydratedDocument<T>> {
     return this._repository.findOne(param);
   }
-  create(item: T): Promise<T> {
+  create(item: T): Promise<HydratedDocument<T>> {
     return this._repository.create(item);
   }
 
-  update(id: string, item: T) {
-    this._repository;
+  update(id: Types.ObjectId, item: T): Promise<HydratedDocument<T>> {
     return this._repository.findByIdAndUpdate(id, item, {
       new: true,
     });
   }
-  delete(id: string) {
+  delete(id: Types.ObjectId) {
     return this._repository.findByIdAndDelete(id);
   }
 }
