@@ -51,7 +51,7 @@ export class User {
 
   verificationToken: string;
 
-  otpToken: string;
+  otpToken: number;
 
   otpTokenExpires: Date;
 

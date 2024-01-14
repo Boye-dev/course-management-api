@@ -25,6 +25,22 @@ export class MailService {
     }
   }
 
+  async sendOtpEmail(user: User, otp: number) {
+    try {
+      await this.mailerService.sendMail({
+        to: user.email,
+        subject: 'Login Otp',
+        template: './otpemail.hbs',
+        context: {
+          name: user.lastName,
+          otp,
+        },
+      });
+    } catch (error) {
+      throw new InternalServerErrorException('Error sending otp  mail');
+    }
+  }
+
   async sendForgotPasswordEmail(user: User, token: string) {
     try {
       const url = `https://nexus-frontend-rho.vercel.app/resetPassword?token=${token}`;

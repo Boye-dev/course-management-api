@@ -8,10 +8,14 @@ import { PassportModule } from '@nestjs/passport';
 import { JwtStrategy } from './strategies/jwt-strategy';
 import { RefreshStrategy } from './strategies/refresh-strategy';
 import { ConfigModule, ConfigService } from '@nestjs/config';
+import { HelperServiceModule } from 'src/services/helper.service.ts/helper-service.module';
+import { MailServiceModule } from 'src/services/mail-service/mail-service.module';
 
 @Module({
   imports: [
     DataServicesModule,
+    HelperServiceModule,
+    MailServiceModule,
     JwtModule.registerAsync({
       imports: [ConfigModule],
       useFactory: async (configService: ConfigService) => ({
