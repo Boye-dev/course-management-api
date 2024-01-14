@@ -1,5 +1,11 @@
 import { ApiProperty } from '@nestjs/swagger';
-import { IsEmail, IsMongoId, IsNotEmpty, IsString } from 'class-validator';
+import {
+  IsEmail,
+  IsMongoId,
+  IsNotEmpty,
+  IsNumber,
+  IsString,
+} from 'class-validator';
 import { Types } from 'mongoose';
 
 export class LoginDto {
@@ -48,4 +54,11 @@ export class RefreshDto {
   @IsString()
   @IsNotEmpty()
   refresh: string;
+}
+
+export class OtpDto {
+  @ApiProperty({ required: true })
+  @IsNumber()
+  @IsNotEmpty()
+  otp: number;
 }

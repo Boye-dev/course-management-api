@@ -18,6 +18,8 @@ export type UserDocument = HydratedDocument<User>;
       delete ret.verificationToken;
       delete ret.resetPasswordToken;
       delete ret.resetPasswordExpires;
+      delete ret.otpToken;
+      delete ret.otpTokenExpires;
       delete ret.__v;
     },
   },
@@ -92,7 +94,7 @@ export class User {
   registrationStatus?: Record<string, string[]>;
 
   @Prop()
-  otpToken: string;
+  otpToken: number;
 
   @Prop()
   otpTokenExpires: Date;

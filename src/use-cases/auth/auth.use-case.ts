@@ -14,4 +14,8 @@ export class AuthUseCases {
   async refreshToken(user: User & { _id: Types.ObjectId }) {
     return await this.authFactoryService.refreshToken(user);
   }
+
+  async verifyOtp(id: Types.ObjectId, otp: number) {
+    return await this.authFactoryService.verifyOtp(id, otp);
+  }
 }

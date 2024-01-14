@@ -8,4 +8,8 @@ export class HelperService {
     const token = randomBytes(32).toString('hex');
     return token;
   }
+
+  generateOtpToken(): number {
+    return Math.floor(100000 + Math.random() * 900000);
+  }
 }
