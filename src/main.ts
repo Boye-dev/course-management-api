@@ -13,8 +13,7 @@ async function bootstrap() {
   app.use(helmet());
   const corsOptions = {
     credentials: true,
-    origin: ['http://localhost:3000'],
-    // origin: "http://localhost:3000",
+    origin: ['http://localhost:5173', 'https://babcock-cms.vercel.app'],
   };
   app.enableCors(corsOptions);
 
