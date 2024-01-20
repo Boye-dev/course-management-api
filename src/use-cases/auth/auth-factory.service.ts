@@ -109,13 +109,13 @@ export class AuthFactoryService {
       throw new InternalServerErrorException(error?.message);
     }
   }
-  async refreshToken(user: User & { _id: Types.ObjectId }) {
+  async refreshToken(user: User & { id: Types.ObjectId }) {
     const payload = {
       email: user.email,
       role: user.role,
       firstname: user.firstName,
       lastName: user.lastName,
-      id: user._id,
+      id: user.id,
     };
     const accessToken = await this.generateJwtToken(payload);
 

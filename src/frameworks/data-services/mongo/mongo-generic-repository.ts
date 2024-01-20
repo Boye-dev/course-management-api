@@ -73,7 +73,7 @@ export class MongoGenericRepository<T> implements IGenericRepository<T> {
     return this._repository.findById(id);
   }
 
-  findOne(param: Partial<T>): Promise<HydratedDocument<T>> {
+  findOne(param: any): Promise<HydratedDocument<T>> {
     return this._repository.findOne(param);
   }
   create(item: T): Promise<HydratedDocument<T>> {

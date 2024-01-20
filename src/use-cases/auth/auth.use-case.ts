@@ -11,7 +11,7 @@ export class AuthUseCases {
     return await this.authFactoryService.login(user);
   }
 
-  async refreshToken(user: User & { _id: Types.ObjectId }) {
+  async refreshToken(user: User & { id: Types.ObjectId }) {
     return await this.authFactoryService.refreshToken(user);
   }
 

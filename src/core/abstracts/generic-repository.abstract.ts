@@ -5,7 +5,7 @@ export abstract class IGenericRepository<T> {
 
   abstract findById(id: Types.ObjectId): Promise<HydratedDocument<T>>;
 
-  abstract findOne(param: Partial<T>): Promise<HydratedDocument<T>>;
+  abstract findOne(param: any): Promise<HydratedDocument<T>>;
 
   abstract create(item: T): Promise<HydratedDocument<T>>;
 
