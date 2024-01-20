@@ -167,4 +167,20 @@ export class UserController {
       );
     }
   }
+
+  @ApiParam({ name: 'id' })
+  @UseGuards(JwtGuard)
+  @Get(':id')
+  async getUser(@Param() params: IdParamsDto) {
+    const { id } = params;
+
+    try {
+      return this.userUseCases.getUser(id);
+    } catch (error) {
+      console.log(error);
+      throw new InternalServerErrorException(
+        'Something went wrong while fetching user',
+      );
+    }
+  }
 }

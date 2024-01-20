@@ -49,6 +49,9 @@ export class UserUseCases {
 
     return createdUser;
   }
+  async getUser(id: Types.ObjectId) {
+    return await this.userFactoryService.getUser(id);
+  }
 
   async verifyUser(token: string) {
     return await this.userFactoryService.verifyUser(token);

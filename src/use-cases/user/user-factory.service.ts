@@ -219,7 +219,7 @@ export class UserFactoryService {
     if (file) {
       try {
         const profilePicture = await this.awsService.uploadSingleFile(file);
-        user.profilePicture = profilePicture;
+        updateUserDto.profilePicture = profilePicture;
       } catch (error) {
         throw new BadRequestException(
           `Something went wrong while uploading the picture`,
@@ -255,6 +255,15 @@ export class UserFactoryService {
       });
     } else {
       throw new BadRequestException(`Old Password is incorrect`);
+    }
+  }
+
+  async getUser(id: Types.ObjectId) {
+    try {
+      const user = await this.dataService.users.findById(id);
+      return user.toJSON();
+    } catch (error) {
+      throw new BadRequestException('User not found');
     }
   }
 }

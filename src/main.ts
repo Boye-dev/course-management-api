@@ -2,7 +2,7 @@
 import helmet from 'helmet';
 import { NestFactory } from '@nestjs/core';
 import { AppModule } from './app.module';
-import { BadRequestException, ValidationPipe } from '@nestjs/common';
+import { NotAcceptableException, ValidationPipe } from '@nestjs/common';
 import { ValidationError } from 'class-validator';
 import { ConfigService } from '@nestjs/config';
 import { SwaggerModule, DocumentBuilder } from '@nestjs/swagger';
@@ -33,7 +33,7 @@ async function bootstrap() {
   app.useGlobalPipes(
     new ValidationPipe({
       exceptionFactory: (validationErrors: ValidationError[] = []) => {
-        return new BadRequestException(
+        return new NotAcceptableException(
           validationErrors.reduce((obj: any[], property: ValidationError) => {
             obj.push({
               field: property.property,
