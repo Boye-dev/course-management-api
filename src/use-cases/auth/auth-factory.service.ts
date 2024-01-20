@@ -95,7 +95,7 @@ export class AuthFactoryService {
       const payload = {
         email: existingUser.email,
         role: existingUser.role,
-        firstname: existingUser.firstName,
+        firstName: existingUser.firstName,
         lastName: existingUser.lastName,
         id: existingUser._id,
       };
@@ -113,7 +113,7 @@ export class AuthFactoryService {
     const payload = {
       email: user.email,
       role: user.role,
-      firstname: user.firstName,
+      firstName: user.firstName,
       lastName: user.lastName,
       id: user.id,
     };
