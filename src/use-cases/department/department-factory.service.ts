@@ -3,8 +3,13 @@ import {
   Injectable,
   InternalServerErrorException,
 } from '@nestjs/common';
+import { Types } from 'mongoose';
 import { IDataServices } from 'src/core';
-import { CreateDepartmentDto } from 'src/core/dto/department.dto';
+import {
+  CreateDepartmentDto,
+  UpdateDepartmentDto,
+} from 'src/core/dto/department.dto';
+import { DepartmentQueryDto, QueryDto } from 'src/core/dto/query.dto';
 
 @Injectable()
 export class DepartmentFactoryService {
@@ -13,20 +18,130 @@ export class DepartmentFactoryService {
   async createDepartment(createDepartmentDto: CreateDepartmentDto) {
     try {
       const department = await this.dataServices.departments.findOne({
-        name: createDepartmentDto.name.toLowerCase(),
+        $or: [
+          {
+            name: createDepartmentDto.name.toLowerCase(),
+          },
+          {
+            code: createDepartmentDto.code.toUpperCase(),
+          },
+        ],
       });
       if (department) {
         throw new BadRequestException(
-          `${createDepartmentDto.name} already exists`,
+          `${createDepartmentDto.name}/ ${createDepartmentDto.code} already exists`,
         );
       }
       const school = await this.dataServices.schools.findById(
         createDepartmentDto.school,
       );
       if (!school) {
-        throw new BadRequestException(`${school.name} does not exist`);
+        throw new BadRequestException('School not found');
       }
+
       return await this.dataServices.departments.create(createDepartmentDto);
+    } catch (error) {
+      throw new InternalServerErrorException(error?.message);
+    }
+  }
+
+  async editDepartment(
+    updateDepartmentDto: UpdateDepartmentDto,
+    id: Types.ObjectId,
+  ) {
+    try {
+      const department = await this.dataServices.departments.findById(id);
+      if (!department) {
+        throw new BadRequestException(`Department does not exists`);
+      }
+
+      const departmentExists = await this.dataServices.departments.findOne({
+        $or: [
+          {
+            name:
+              updateDepartmentDto?.name?.toLowerCase() ===
+              department.name.toLowerCase()
+                ? ''
+                : updateDepartmentDto?.name?.toLowerCase(),
+          },
+          {
+            code:
+              updateDepartmentDto?.code?.toUpperCase() ===
+              department.code.toUpperCase()
+                ? ''
+                : updateDepartmentDto?.code?.toUpperCase(),
+          },
+        ],
+      });
+      if (departmentExists) {
+        throw new BadRequestException(
+          `${updateDepartmentDto.name ? updateDepartmentDto.name + ' ' : ''}${
+            updateDepartmentDto.code || ''
+          } already exists`,
+        );
+      }
+      return await this.dataServices.departments.update(
+        id,
+        updateDepartmentDto,
+      );
+    } catch (error) {
+      throw new InternalServerErrorException(error?.message);
+    }
+  }
+
+  async getAll(query?: DepartmentQueryDto) {
+    try {
+      const queries: QueryDto = {
+        search: query.search,
+        searchBy: Array.isArray(query.searchBy)
+          ? query.searchBy
+          : query.searchBy && [query.searchBy],
+        sortBy: query.sortBy,
+        sortOrder: query.sortOrder,
+        page: query.page && Number(query.page),
+        pageSize: query.pageSize && Number(query.pageSize),
+      };
+      if (query.school && query.yearsTaken) {
+        const schoolObj = [];
+        if (Array.isArray(query.school)) {
+          for (const option of query.school) {
+            const optionObj = {};
+            optionObj[option] = { school: query.school };
+            schoolObj.push(optionObj);
+          }
+        } else {
+          schoolObj.push({ school: query.school });
+        }
+
+        queries.findOperation = {
+          $and: [{ $or: [...schoolObj] }, { yearsTaken: query.yearsTaken }],
+        };
+      } else if (query.school) {
+        const schoolObj = [];
+
+        if (Array.isArray(query.school)) {
+          for (const option of query.school) {
+            const optionObj = { school: option };
+            schoolObj.push(optionObj);
+          }
+        } else {
+          schoolObj.push({ school: query.school });
+        }
+
+        queries.findOperation = {
+          $or: [...schoolObj],
+        };
+        console.log(queries.findOperation);
+      } else if (query.yearsTaken) {
+        queries.findOperation = {
+          $and: [{ yearsTaken: query.yearsTaken }],
+        };
+      }
+      const departments = await this.dataServices.departments.findAll(
+        queries,
+        'school',
+      );
+      return departments;
     } catch (error) {
       throw new InternalServerErrorException(error?.message);
     }

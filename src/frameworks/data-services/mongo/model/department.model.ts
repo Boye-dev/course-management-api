@@ -15,6 +15,9 @@ export class Department {
   })
   school: Types.ObjectId;
 
+  @Prop({ required: true, trim: true, uppercase: true, unique: true })
+  code: string;
+
   @Prop({ required: true })
   yearsTaken: number;
 }

@@ -54,8 +54,6 @@ export class SchoolController {
   @UseGuards(JwtGuard, RolesGuard)
   @Get()
   async getAll(@Query() query: SchoolQueryDto) {
-    console.log(query);
-
     return this.schoolUseCase.getAll(query);
   }
 }

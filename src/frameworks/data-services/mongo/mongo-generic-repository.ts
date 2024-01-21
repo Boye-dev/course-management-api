@@ -5,14 +5,12 @@ import { Types } from 'mongoose';
 
 export class MongoGenericRepository<T> implements IGenericRepository<T> {
   private _repository: Model<T>;
-  private _populateOnFind: string[];
 
-  constructor(repository: Model<T>, populateOnFind: string[] = []) {
+  constructor(repository: Model<T>) {
     this._repository = repository;
-    this._populateOnFind = populateOnFind;
   }
 
-  async findAll(param: QueryDto) {
+  async findAll(param?: QueryDto, populate?: any) {
     const page = param?.page - 1 || 0;
     const pageSize = param?.pageSize || 10;
 
@@ -32,12 +30,29 @@ export class MongoGenericRepository<T> implements IGenericRepository<T> {
 
     let total: number;
     if (searchObject.length > 0) {
+      console.log(searchObject);
       total = await this._repository.countDocuments({
         $or: searchObject,
         ...findOperation,
       });
+      if (populate) {
+        const data = await this._repository
+          .find({ $and: [{ $or: searchObject }, { ...findOperation }] })
+          .sort({
+            [sortBy]:
+              param?.sortOrder === 'asc'
+                ? 1
+                : param?.sortOrder === 'desc'
+                  ? -1
+                  : 1,
+          })
+          .skip(page * pageSize)
+          .limit(pageSize)
+          .populate(populate);
+        return { total, page, pageSize, data };
+      }
       const data = await this._repository
-        .find({ $or: searchObject, ...findOperation })
+        .find({ $and: [{ $or: searchObject }, { ...findOperation }] })
         .sort({
           [sortBy]:
             param?.sortOrder === 'asc'
@@ -53,6 +68,22 @@ export class MongoGenericRepository<T> implements IGenericRepository<T> {
       total = await this._repository.countDocuments({
         ...findOperation,
       });
+      if (populate) {
+        const data = await this._repository
+          .find({ ...findOperation })
+          .sort({
+            [sortBy]:
+              param?.sortOrder === 'asc'
+                ? 1
+                : param?.sortOrder === 'desc'
+                  ? -1
+                  : 1,
+          })
+          .skip(page * pageSize)
+          .limit(pageSize)
+          .populate(populate);
+        return { total, page, pageSize, data };
+      }
       const data = await this._repository
         .find({ ...findOperation })
         .sort({

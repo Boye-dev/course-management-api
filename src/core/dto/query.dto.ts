@@ -55,3 +55,63 @@ export class SchoolQueryDto {
   @IsOptional()
   sortOrder?: 'asc' | 'desc';
 }
+
+export class DepartmentQueryDto {
+  @ApiProperty({ required: false })
+  @IsOptional()
+  @IsString()
+  search?: string;
+
+  @ApiProperty({
+    type: [String],
+    enum: SchoolEnum,
+    isArray: true,
+    required: false,
+  })
+  @IsOptional()
+  @IsEnum(SchoolEnum, { each: true })
+  searchBy?: string[];
+
+  @ApiProperty({
+    type: String,
+    isArray: true,
+    required: false,
+  })
+  @IsOptional()
+  school?: string[];
+
+  @ApiProperty({
+    type: String,
+    isArray: true,
+    required: false,
+  })
+  @IsOptional()
+  yearsTaken?: string[];
+
+  @ApiProperty({ required: false })
+  @IsNumberString()
+  @IsOptional()
+  pageSize?: number;
+
+  @ApiProperty({ required: false })
+  @IsNumberString()
+  @IsOptional()
+  page?: number;
+
+  @ApiProperty({ required: false })
+  @IsString()
+  @IsEnum(SchoolEnum)
+  @IsOptional()
+  sortBy?: string;
+
+  @ApiProperty({
+    type: String,
+    enum: ['asc', 'desc'],
+    isArray: false,
+    required: false,
+  })
+  @IsString()
+  @IsEnum(['asc', 'desc'])
+  @IsOptional()
+  sortOrder?: 'asc' | 'desc';
+}

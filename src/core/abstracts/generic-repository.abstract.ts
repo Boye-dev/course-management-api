@@ -1,7 +1,7 @@
 import { HydratedDocument, Types } from 'mongoose';
 
 export abstract class IGenericRepository<T> {
-  abstract findAll(param?: any);
+  abstract findAll(param?: any, populate?: any);
 
   abstract findById(id: Types.ObjectId): Promise<HydratedDocument<T>>;
 

@@ -1,10 +1,12 @@
-import { ApiProperty, PartialType } from '@nestjs/swagger';
+import { ApiProperty, OmitType, PartialType } from '@nestjs/swagger';
 import {
   IsMongoId,
   IsNotEmpty,
   IsNumber,
   IsString,
+  MaxLength,
   Min,
+  MinLength,
 } from 'class-validator';
 import { Types } from 'mongoose';
 
@@ -24,6 +26,15 @@ export class CreateDepartmentDto {
   @IsMongoId()
   @IsNotEmpty()
   school: Types.ObjectId;
+
+  @ApiProperty({ required: true })
+  @IsString()
+  @IsNotEmpty()
+  @MaxLength(4)
+  @MinLength(4)
+  code: string;
 }
 
-export class UpdateDepartmentDto extends PartialType(CreateDepartmentDto) {}
+export class UpdateDepartmentDto extends PartialType(
+  OmitType(CreateDepartmentDto, ['school', 'yearsTaken']),
+) {}
