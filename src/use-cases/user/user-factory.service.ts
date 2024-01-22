@@ -20,6 +20,11 @@ import {
   RolesEnum,
   StatusEnum,
 } from 'src/core/interfaces/user.interfaces';
+import {
+  QueryDto,
+  StudentQueryDto,
+  TeacherQueryDto,
+} from 'src/core/dto/query.dto';
 
 @Injectable()
 export class UserFactoryService {
@@ -264,6 +269,146 @@ export class UserFactoryService {
       return user.toJSON();
     } catch (error) {
       throw new BadRequestException('User not found');
+    }
+  }
+  async getAllStudents(query?: StudentQueryDto) {
+    try {
+      const queries: QueryDto = {
+        search: query.search,
+        searchBy: Array.isArray(query.searchBy)
+          ? query.searchBy
+          : query.searchBy && [query.searchBy],
+        sortBy: query.sortBy,
+        sortOrder: query.sortOrder,
+        page: query.page && Number(query.page),
+        pageSize: query.pageSize && Number(query.pageSize),
+      };
+      const operation = [];
+      if (query.department) {
+        const departMentObj = [];
+        if (Array.isArray(query.department)) {
+          query.department.forEach((dep) =>
+            departMentObj.push({ department: dep }),
+          );
+        } else {
+          departMentObj.push({ department: query.department });
+        }
+
+        operation.push({ $or: [...departMentObj] });
+      }
+
+      if (query.gender) {
+        const genderObj = [];
+        if (Array.isArray(query.gender)) {
+          query.gender.forEach((gen) => genderObj.push({ gender: gen }));
+        } else {
+          genderObj.push({ gender: query.gender });
+        }
+
+        operation.push({ $or: [...genderObj] });
+      }
+      if (query.yearOfAdmission) {
+        const yearObj = [];
+        if (Array.isArray(query.yearOfAdmission)) {
+          query.yearOfAdmission.forEach((val) => yearObj.push({ gender: val }));
+        } else {
+          yearObj.push({ yearOfAdmission: query.yearOfAdmission });
+        }
+
+        operation.push({ $or: [...yearObj] });
+      }
+      if (query.status) {
+        const statusObj = [];
+        if (Array.isArray(query.status)) {
+          query.status.forEach((val) => statusObj.push({ status: val }));
+        } else {
+          statusObj.push({ status: query.status });
+        }
+
+        operation.push({ $or: [...statusObj] });
+      }
+      operation.push({ role: RolesEnum.Student });
+      if (operation.length > 0) {
+        queries.findOperation = {
+          $and: operation,
+        };
+      }
+
+      const students = await this.dataService.users.findAll(queries, {
+        path: 'department',
+        populate: {
+          path: 'school',
+        },
+      });
+      return students;
+    } catch (error) {
+      throw new InternalServerErrorException(error?.message);
+    }
+  }
+
+  async getAllTeachers(query?: TeacherQueryDto) {
+    try {
+      const queries: QueryDto = {
+        search: query.search,
+        searchBy: Array.isArray(query.searchBy)
+          ? query.searchBy
+          : query.searchBy && [query.searchBy],
+        sortBy: query.sortBy,
+        sortOrder: query.sortOrder,
+        page: query.page && Number(query.page),
+        pageSize: query.pageSize && Number(query.pageSize),
+      };
+      const operation = [];
+      if (query.department) {
+        const departMentObj = [];
+        if (Array.isArray(query.department)) {
+          query.department.forEach((dep) =>
+            departMentObj.push({ department: dep }),
+          );
+        } else {
+          departMentObj.push({ department: query.department });
+        }
+
+        operation.push({ $or: [...departMentObj] });
+      }
+
+      if (query.gender) {
+        const genderObj = [];
+        if (Array.isArray(query.gender)) {
+          query.gender.forEach((gen) => genderObj.push({ gender: gen }));
+        } else {
+          genderObj.push({ gender: query.gender });
+        }
+
+        operation.push({ $or: [...genderObj] });
+      }
+
+      if (query.status) {
+        const statusObj = [];
+        if (Array.isArray(query.status)) {
+          query.status.forEach((val) => statusObj.push({ status: val }));
+        } else {
+          statusObj.push({ status: query.status });
+        }
+
+        operation.push({ $or: [...statusObj] });
+      }
+      operation.push({ role: RolesEnum.Teacher });
+      if (operation.length > 0) {
+        queries.findOperation = {
+          $and: operation,
+        };
+      }
+
+      const students = await this.dataService.users.findAll(queries, {
+        path: 'department',
+        populate: {
+          path: 'school',
+        },
+      });
+      return students;
+    } catch (error) {
+      throw new InternalServerErrorException(error?.message);
     }
   }
 }

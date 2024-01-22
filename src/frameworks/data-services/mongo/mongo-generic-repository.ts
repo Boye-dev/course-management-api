@@ -30,10 +30,8 @@ export class MongoGenericRepository<T> implements IGenericRepository<T> {
 
     let total: number;
     if (searchObject.length > 0) {
-      console.log(searchObject);
       total = await this._repository.countDocuments({
-        $or: searchObject,
-        ...findOperation,
+        $and: [{ $or: searchObject }, { ...findOperation }],
       });
       if (populate) {
         const data = await this._repository

@@ -43,8 +43,6 @@ export class User {
 
   department?: Types.ObjectId;
 
-  school?: Types.ObjectId;
-
   registrationStatus?: Record<string, string[]>;
 
   yearOfAdmission?: number;

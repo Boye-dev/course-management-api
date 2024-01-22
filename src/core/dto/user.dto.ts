@@ -185,3 +185,10 @@ export class CreateTeacherOrStudentDto {
 export class UpdateUserDto extends PartialType(
   OmitType(CreateUserDto, ['role', 'email', 'password']),
 ) {}
+
+export enum UserEnum {
+  firstName = 'firstName',
+  lastName = 'lastName',
+  middleName = 'middleName',
+  email = 'email',
+}

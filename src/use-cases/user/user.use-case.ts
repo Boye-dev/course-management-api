@@ -9,6 +9,7 @@ import {
 import { MailService } from 'src/frameworks/mail/mail.service';
 import { UpdatePasswordDto } from 'src/core/dto/auth.dto';
 import { Types } from 'mongoose';
+import { StudentQueryDto, TeacherQueryDto } from 'src/core/dto/query.dto';
 
 @Injectable()
 export class UserUseCases {
@@ -53,6 +54,12 @@ export class UserUseCases {
     return await this.userFactoryService.getUser(id);
   }
 
+  async getAllStudents(query?: StudentQueryDto) {
+    return await this.userFactoryService.getAllStudents(query);
+  }
+  async getAllTeachers(query?: TeacherQueryDto) {
+    return await this.userFactoryService.getAllTeachers(query);
+  }
   async verifyUser(token: string) {
     return await this.userFactoryService.verifyUser(token);
   }

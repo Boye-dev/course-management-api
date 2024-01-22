@@ -9,6 +9,7 @@ import {
   Param,
   Patch,
   UseGuards,
+  Query,
 } from '@nestjs/common';
 import { FileInterceptor } from '@nestjs/platform-express';
 import {
@@ -18,6 +19,7 @@ import {
   ApiParam,
   ApiTags,
 } from '@nestjs/swagger';
+import { HasRoles } from 'src/core/decorators/role.decorator';
 import {
   CreateTeacherOrStudentDto,
   CreateUserDto,
@@ -29,6 +31,9 @@ import {
   ResetPasswordDto,
   UpdatePasswordDto,
 } from 'src/core/dto/auth.dto';
+import { StudentQueryDto, TeacherQueryDto } from 'src/core/dto/query.dto';
+import { RolesGuard } from 'src/core/guards/roles.guard';
+import { RolesEnum } from 'src/core/interfaces/user.interfaces';
 import { JwtGuard } from 'src/use-cases/auth/guards/jwt-auth.guard';
 import { UserUseCases } from 'src/use-cases/user/user.use-case';
 
@@ -64,6 +69,8 @@ export class UserController {
     type: CreateTeacherOrStudentDto,
     description: 'Json structure for user object',
   })
+  @HasRoles(RolesEnum.Admin)
+  @UseGuards(JwtGuard, RolesGuard)
   @Post()
   @UseInterceptors(FileInterceptor('profilePicture'))
   async createTeacherOrStudent(
@@ -166,6 +173,20 @@ export class UserController {
         'Something went wrong while verifying email',
       );
     }
+  }
+
+  @HasRoles(RolesEnum.Admin)
+  @UseGuards(JwtGuard, RolesGuard)
+  @Get('students')
+  async getAllStudents(@Query() query: StudentQueryDto) {
+    return this.userUseCases.getAllStudents(query);
+  }
+
+  @HasRoles(RolesEnum.Admin)
+  @UseGuards(JwtGuard, RolesGuard)
+  @Get('teachers')
+  async getAllTeachers(@Query() query: TeacherQueryDto) {
+    return this.userUseCases.getAllTeachers(query);
   }
 
   @ApiParam({ name: 'id' })

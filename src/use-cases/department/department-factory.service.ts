@@ -101,42 +101,26 @@ export class DepartmentFactoryService {
         page: query.page && Number(query.page),
         pageSize: query.pageSize && Number(query.pageSize),
       };
-      if (query.school && query.yearsTaken) {
+      const operation = [];
+
+      if (query.school) {
         const schoolObj = [];
         if (Array.isArray(query.school)) {
-          for (const option of query.school) {
-            const optionObj = {};
-            optionObj[option] = { school: query.school };
-            schoolObj.push(optionObj);
-          }
+          query.school.forEach((sch) => schoolObj.push({ school: sch }));
         } else {
           schoolObj.push({ school: query.school });
         }
-
+        operation.push({ $or: [...schoolObj] });
+      }
+      if (query.yearsTaken) {
+        operation.push({ yearsTaken: Number(query.yearsTaken) });
+      }
+      if (operation.length > 0) {
         queries.findOperation = {
-          $and: [{ $or: [...schoolObj] }, { yearsTaken: query.yearsTaken }],
-        };
-      } else if (query.school) {
-        const schoolObj = [];
-
-        if (Array.isArray(query.school)) {
-          for (const option of query.school) {
-            const optionObj = { school: option };
-            schoolObj.push(optionObj);
-          }
-        } else {
-          schoolObj.push({ school: query.school });
-        }
-
-        queries.findOperation = {
-          $or: [...schoolObj],
-        };
-        console.log(queries.findOperation);
-      } else if (query.yearsTaken) {
-        queries.findOperation = {
-          $and: [{ yearsTaken: query.yearsTaken }],
+          $and: operation,
         };
       }
+
       const departments = await this.dataServices.departments.findAll(
         queries,
         'school',

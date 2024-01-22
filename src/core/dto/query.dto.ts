@@ -1,6 +1,8 @@
 import { ApiProperty } from '@nestjs/swagger';
 import { IsEnum, IsNumberString, IsOptional, IsString } from 'class-validator';
 import { SchoolEnum } from '../entities';
+import { GenderEnum, StatusEnum } from '../interfaces/user.interfaces';
+import { UserEnum } from './user.dto';
 
 export class QueryDto {
   search?: string;
@@ -56,11 +58,41 @@ export class SchoolQueryDto {
   sortOrder?: 'asc' | 'desc';
 }
 
-export class DepartmentQueryDto {
+export class MainQueryDto {
   @ApiProperty({ required: false })
   @IsOptional()
   @IsString()
   search?: string;
+
+  @ApiProperty({ required: false })
+  @IsNumberString()
+  @IsOptional()
+  pageSize?: number;
+
+  @ApiProperty({ required: false })
+  @IsNumberString()
+  @IsOptional()
+  page?: number;
+
+  @ApiProperty({
+    type: String,
+    enum: ['asc', 'desc'],
+    isArray: false,
+    required: false,
+  })
+  @IsString()
+  @IsEnum(['asc', 'desc'])
+  @IsOptional()
+  sortOrder?: 'asc' | 'desc';
+}
+export class DepartmentQueryDto extends MainQueryDto {
+  @ApiProperty({
+    type: String,
+    isArray: true,
+    required: false,
+  })
+  @IsOptional()
+  school?: string[];
 
   @ApiProperty({
     type: [String],
@@ -78,7 +110,43 @@ export class DepartmentQueryDto {
     required: false,
   })
   @IsOptional()
-  school?: string[];
+  yearsTaken?: string[];
+
+  @ApiProperty({ required: false })
+  @IsString()
+  @IsEnum(SchoolEnum)
+  @IsOptional()
+  sortBy?: string;
+}
+
+export class StudentQueryDto extends MainQueryDto {
+  @ApiProperty({
+    type: String,
+    isArray: true,
+    required: false,
+  })
+  @IsOptional()
+  department?: string[];
+
+  @ApiProperty({
+    type: [String],
+    enum: UserEnum,
+    isArray: true,
+    required: false,
+  })
+  @IsOptional()
+  @IsEnum(UserEnum, { each: true })
+  searchBy?: string[];
+
+  @ApiProperty({
+    type: String,
+    isArray: true,
+    enum: StatusEnum,
+    required: false,
+  })
+  @IsEnum(StatusEnum, { each: true })
+  @IsOptional()
+  status?: string[];
 
   @ApiProperty({
     type: String,
@@ -86,32 +154,77 @@ export class DepartmentQueryDto {
     required: false,
   })
   @IsOptional()
-  yearsTaken?: string[];
+  yearOfAdmission?: string[];
 
-  @ApiProperty({ required: false })
-  @IsNumberString()
+  @ApiProperty({
+    type: [String],
+    isArray: true,
+    enum: GenderEnum,
+    required: false,
+  })
   @IsOptional()
-  pageSize?: number;
+  @IsEnum(GenderEnum, { each: true })
+  gender?: string[];
 
-  @ApiProperty({ required: false })
-  @IsNumberString()
-  @IsOptional()
-  page?: number;
-
-  @ApiProperty({ required: false })
+  @ApiProperty({
+    required: false,
+    type: String,
+    isArray: false,
+    enum: UserEnum,
+  })
   @IsString()
-  @IsEnum(SchoolEnum)
+  @IsEnum(UserEnum)
   @IsOptional()
   sortBy?: string;
+}
+
+export class TeacherQueryDto extends MainQueryDto {
+  @ApiProperty({
+    type: [String],
+    enum: UserEnum,
+    isArray: true,
+    required: false,
+  })
+  @IsOptional()
+  @IsEnum(UserEnum, { each: true })
+  searchBy?: string[];
 
   @ApiProperty({
     type: String,
-    enum: ['asc', 'desc'],
-    isArray: false,
+    isArray: true,
     required: false,
   })
-  @IsString()
-  @IsEnum(['asc', 'desc'])
   @IsOptional()
-  sortOrder?: 'asc' | 'desc';
+  department?: string[];
+
+  @ApiProperty({
+    type: String,
+    isArray: true,
+    enum: StatusEnum,
+    required: false,
+  })
+  @IsEnum(StatusEnum, { each: true })
+  @IsOptional()
+  status?: string[];
+
+  @ApiProperty({
+    type: [String],
+    isArray: true,
+    enum: GenderEnum,
+    required: false,
+  })
+  @IsOptional()
+  @IsEnum(GenderEnum, { each: true })
+  gender?: string[];
+
+  @ApiProperty({
+    required: false,
+    type: String,
+    isArray: false,
+    enum: UserEnum,
+  })
+  @IsString()
+  @IsEnum(UserEnum)
+  @IsOptional()
+  sortBy?: string;
 }
