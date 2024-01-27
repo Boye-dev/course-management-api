@@ -2,12 +2,16 @@ import { Module } from '@nestjs/common';
 import { MongooseModule } from '@nestjs/mongoose';
 import { IDataServices } from '../../../core';
 import {
+  Course,
+  CourseSchema,
   Department,
   DepartmentSchema,
   School,
   SchoolSchema,
   Setting,
   SettingSchema,
+  TeacherEnrolledCourse,
+  TeacherEnrolledCourseSchema,
   User,
   UserSchema,
 } from './model';
@@ -21,6 +25,8 @@ import { ConfigModule, ConfigService } from '@nestjs/config';
       { name: Department.name, schema: DepartmentSchema },
       { name: School.name, schema: SchoolSchema },
       { name: Setting.name, schema: SettingSchema },
+      { name: Course.name, schema: CourseSchema },
+      { name: TeacherEnrolledCourse.name, schema: TeacherEnrolledCourseSchema },
     ]),
     MongooseModule.forRootAsync({
       imports: [ConfigModule],

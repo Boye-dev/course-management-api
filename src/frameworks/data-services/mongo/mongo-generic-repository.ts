@@ -109,6 +109,10 @@ export class MongoGenericRepository<T> implements IGenericRepository<T> {
     return this._repository.create(item);
   }
 
+  insertMany(item: T[]) {
+    return this._repository.insertMany(item);
+  }
+
   update(id: Types.ObjectId, item: T): Promise<HydratedDocument<T>> {
     return this._repository.findByIdAndUpdate(id, item, {
       new: true,

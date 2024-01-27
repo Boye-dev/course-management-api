@@ -14,6 +14,8 @@ import { DepartmentUseCaseModule } from './use-cases/department/department-use-c
 import { DepartmentController } from './controllers/department.controller';
 import { SettingUseCaseModule } from './use-cases/setting/setting-uses-case.module';
 import { SettingController } from './controllers/setting.controller';
+import { CourseUseCaseModule } from './use-cases/course/course-use-case.module';
+import { CourseController } from './controllers/course.controller';
 
 @Module({
   imports: [
@@ -25,6 +27,7 @@ import { SettingController } from './controllers/setting.controller';
     AuthUseCaseModule,
     SchoolUseCaseModule,
     DepartmentUseCaseModule,
+    CourseUseCaseModule,
     SettingUseCaseModule,
     ConfigModule.forRoot({
       isGlobal: true,
@@ -36,6 +39,7 @@ import { SettingController } from './controllers/setting.controller';
     AuthController,
     SchoolController,
     DepartmentController,
+    CourseController,
     SettingController,
   ],
 })

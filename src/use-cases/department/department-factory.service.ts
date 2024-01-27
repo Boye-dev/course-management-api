@@ -17,6 +17,12 @@ export class DepartmentFactoryService {
 
   async createDepartment(createDepartmentDto: CreateDepartmentDto) {
     try {
+      const school = await this.dataServices.schools.findById(
+        createDepartmentDto.school,
+      );
+      if (!school) {
+        throw new BadRequestException('School not found');
+      }
       const department = await this.dataServices.departments.findOne({
         $or: [
           {
@@ -31,12 +37,6 @@ export class DepartmentFactoryService {
         throw new BadRequestException(
           `${createDepartmentDto.name}/ ${createDepartmentDto.code} already exists`,
         );
-      }
-      const school = await this.dataServices.schools.findById(
-        createDepartmentDto.school,
-      );
-      if (!school) {
-        throw new BadRequestException('School not found');
       }
 
       return await this.dataServices.departments.create(createDepartmentDto);

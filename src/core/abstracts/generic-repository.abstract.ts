@@ -15,4 +15,6 @@ export abstract class IGenericRepository<T> {
   ): Promise<HydratedDocument<T>>;
 
   abstract delete(id: Types.ObjectId);
+
+  abstract insertMany(item: T[]);
 }

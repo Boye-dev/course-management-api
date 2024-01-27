@@ -266,6 +266,14 @@ export class UserFactoryService {
   async getUser(id: Types.ObjectId) {
     try {
       const user = await this.dataService.users.findById(id);
+      if (user.role !== RolesEnum.Admin) {
+        return user.populate({
+          path: 'department',
+          populate: {
+            path: 'school',
+          },
+        });
+      }
       return user.toJSON();
     } catch (error) {
       throw new BadRequestException('User not found');
