@@ -10,11 +10,13 @@ import {
 } from '@nestjs/common';
 import { ApiBearerAuth, ApiBody, ApiParam, ApiTags } from '@nestjs/swagger';
 import { HasRoles } from 'src/core/decorators/role.decorator';
-import { IdParamsDto } from 'src/core/dto/auth.dto';
+import { IdParamsDto, MyStudentsParamsDto } from 'src/core/dto/auth.dto';
 import {
   CreateCourseDto,
+  EnrollCourseStudentDto,
   EnrollCourseTeacherDto,
   UpdateCourseDto,
+  UpdateScoreDto,
 } from 'src/core/dto/course.dto';
 import { CourseQueryDto } from 'src/core/dto/query.dto';
 import { RolesGuard } from 'src/core/guards/roles.guard';
@@ -58,6 +60,23 @@ export class CourseController {
   }
 
   @ApiBody({
+    type: EnrollCourseStudentDto,
+    description: 'Course object json',
+  })
+  @ApiParam({ name: 'id', description: 'Student Id' })
+  @HasRoles(RolesEnum.Student)
+  @UseGuards(JwtGuard, RolesGuard)
+  @Post('enroll/student/:id')
+  async studentEnroll(
+    @Body() enrollDto: EnrollCourseStudentDto,
+    @Param() params: IdParamsDto,
+  ) {
+    const { id } = params;
+
+    return this.courseUseCases.studentEnroll(id, enrollDto);
+  }
+
+  @ApiBody({
     type: UpdateCourseDto,
     description: 'Course object json',
   })
@@ -73,6 +92,22 @@ export class CourseController {
     return this.courseUseCases.editCourse(updateCourseDto, id);
   }
 
+  @ApiBody({
+    type: UpdateScoreDto,
+    description: 'Course object json',
+  })
+  @ApiParam({ name: 'id', description: 'Course Id' })
+  @HasRoles(RolesEnum.Teacher)
+  @UseGuards(JwtGuard, RolesGuard)
+  @Patch('update-score/:id')
+  async updateScore(
+    @Body() updateCourseDto: UpdateScoreDto,
+    @Param() params: IdParamsDto,
+  ) {
+    const { id } = params;
+    return this.courseUseCases.updateScore(id, updateCourseDto.score);
+  }
+
   @HasRoles(RolesEnum.Admin, RolesEnum.Teacher)
   @UseGuards(JwtGuard, RolesGuard)
   @Get()
@@ -84,9 +119,53 @@ export class CourseController {
   @HasRoles(RolesEnum.Teacher)
   @UseGuards(JwtGuard)
   @Get('enrolled/:id')
-  async getUser(@Param() params: IdParamsDto) {
+  async getTeacherEnrolledCourses(
+    @Param() params: IdParamsDto,
+    @Query() query: CourseQueryDto,
+  ) {
     const { id } = params;
 
-    return this.courseUseCases.getTeacherEnrolledCourses(id);
+    return this.courseUseCases.getTeacherEnrolledCourses(id, query);
+  }
+
+  @HasRoles(RolesEnum.Student)
+  @UseGuards(JwtGuard)
+  @Get('enrolled-teacher')
+  async getEnrolledCourses(@Query() query: CourseQueryDto) {
+    return this.courseUseCases.getStudentEnrolledCourses(query);
+  }
+
+  @ApiParam({ name: 'id', description: 'Student Id' })
+  @HasRoles(RolesEnum.Student)
+  @HasRoles(RolesEnum.Teacher)
+  @UseGuards(JwtGuard)
+  @Get('enrolled-student/:id')
+  async getEnrolledMyCourses(
+    @Query() query: CourseQueryDto,
+    @Param() params: IdParamsDto,
+  ) {
+    const { id } = params;
+
+    return this.courseUseCases.getStudentMyCourses(id, query);
+  }
+
+  @ApiParam({ name: 'id', description: 'Course Id' })
+  @ApiParam({ name: 'teacherId', description: 'Teacher Id' })
+  @ApiParam({ name: 'year', description: 'Year' })
+  @HasRoles(RolesEnum.Teacher)
+  @UseGuards(JwtGuard)
+  @Get('enrolled-student/:id/:year/:teacherId')
+  async getTeacherstMyStudents(
+    @Param() params: MyStudentsParamsDto,
+    @Query() query: CourseQueryDto,
+  ) {
+    const { id, year, teacherId } = params;
+
+    return this.courseUseCases.getTeacherstMyStudents(
+      teacherId,
+      id,
+      year,
+      query,
+    );
   }
 }

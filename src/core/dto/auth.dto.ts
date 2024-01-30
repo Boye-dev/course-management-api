@@ -49,6 +49,17 @@ export class IdParamsDto {
   id: Types.ObjectId;
 }
 
+export class MyStudentsParamsDto {
+  @IsMongoId()
+  id: Types.ObjectId;
+
+  @IsMongoId()
+  teacherId: Types.ObjectId;
+
+  @IsString()
+  year: string;
+}
+
 export class RefreshDto {
   @ApiProperty({ required: true })
   @IsString()

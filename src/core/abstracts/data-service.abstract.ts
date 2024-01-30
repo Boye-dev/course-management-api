@@ -4,6 +4,7 @@ import {
   Department,
   School,
   Setting,
+  StudentEnrolledCourse,
   TeacherEnrolledCourse,
   User,
 } from '../entities';
@@ -15,4 +16,5 @@ export abstract class IDataServices {
   abstract settings: IGenericRepository<Setting>;
   abstract courses: IGenericRepository<Course>;
   abstract teacherEnrolledCourses: IGenericRepository<TeacherEnrolledCourse>;
+  abstract studentEnrolledCourses: IGenericRepository<StudentEnrolledCourse>;
 }

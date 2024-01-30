@@ -1,4 +1,4 @@
-import { HydratedDocument, Model } from 'mongoose';
+import { FilterQuery, HydratedDocument, Model } from 'mongoose';
 import { IGenericRepository } from '../../../core';
 import { QueryDto } from 'src/core/dto/query.dto';
 import { Types } from 'mongoose';
@@ -28,62 +28,17 @@ export class MongoGenericRepository<T> implements IGenericRepository<T> {
 
     const sortBy = param?.sortBy || null;
 
-    let total: number;
+    let match: FilterQuery<T>;
     if (searchObject.length > 0) {
-      total = await this._repository.countDocuments({
-        $and: [{ $or: searchObject }, { ...findOperation }],
-      });
-      if (populate) {
-        const data = await this._repository
-          .find({ $and: [{ $or: searchObject }, { ...findOperation }] })
-          .sort({
-            [sortBy]:
-              param?.sortOrder === 'asc'
-                ? 1
-                : param?.sortOrder === 'desc'
-                  ? -1
-                  : 1,
-          })
-          .skip(page * pageSize)
-          .limit(pageSize)
-          .populate(populate);
-        return { total, page, pageSize, data };
-      }
-      const data = await this._repository
-        .find({ $and: [{ $or: searchObject }, { ...findOperation }] })
-        .sort({
-          [sortBy]:
-            param?.sortOrder === 'asc'
-              ? 1
-              : param?.sortOrder === 'desc'
-                ? -1
-                : 1,
-        })
-        .skip(page * pageSize)
-        .limit(pageSize);
-      return { total, page, pageSize, data };
+      match = { $and: [{ $or: searchObject }, { ...findOperation }] };
     } else {
-      total = await this._repository.countDocuments({
-        ...findOperation,
-      });
-      if (populate) {
-        const data = await this._repository
-          .find({ ...findOperation })
-          .sort({
-            [sortBy]:
-              param?.sortOrder === 'asc'
-                ? 1
-                : param?.sortOrder === 'desc'
-                  ? -1
-                  : 1,
-          })
-          .skip(page * pageSize)
-          .limit(pageSize)
-          .populate(populate);
-        return { total, page, pageSize, data };
-      }
+      match = { ...findOperation };
+    }
+
+    const total = await this._repository.countDocuments(match);
+    if (populate) {
       const data = await this._repository
-        .find({ ...findOperation })
+        .find(match)
         .sort({
           [sortBy]:
             param?.sortOrder === 'asc'
@@ -93,9 +48,19 @@ export class MongoGenericRepository<T> implements IGenericRepository<T> {
                 : 1,
         })
         .skip(page * pageSize)
-        .limit(pageSize);
+        .limit(pageSize)
+        .populate(populate);
       return { total, page, pageSize, data };
     }
+    const data = await this._repository
+      .find({ ...findOperation })
+      .sort({
+        [sortBy]:
+          param?.sortOrder === 'asc' ? 1 : param?.sortOrder === 'desc' ? -1 : 1,
+      })
+      .skip(page * pageSize)
+      .limit(pageSize);
+    return { total, page, pageSize, data };
   }
 
   findById(id: Types.ObjectId): Promise<HydratedDocument<T>> {
@@ -120,5 +85,11 @@ export class MongoGenericRepository<T> implements IGenericRepository<T> {
   }
   delete(id: Types.ObjectId) {
     return this._repository.findByIdAndDelete(id);
+  }
+
+  async findAggregate(aggregrate: any, page: number, pageSize: number) {
+    const data = await this._repository.aggregate(aggregrate).exec();
+    const total = data[0].total[0] ? data[0].total[0].total : 0;
+    return { total, page, pageSize, data: data[0].documents };
   }
 }

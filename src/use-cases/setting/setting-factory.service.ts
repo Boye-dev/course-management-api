@@ -36,4 +36,11 @@ export class SettingFactoryService {
       throw new InternalServerErrorException(error?.message);
     }
   }
+  async getSettings(id: Types.ObjectId) {
+    try {
+      return await this.dataService.settings.findById(id);
+    } catch (error) {
+      throw new InternalServerErrorException(error?.message);
+    }
+  }
 }

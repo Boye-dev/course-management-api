@@ -10,6 +10,8 @@ import {
   SchoolSchema,
   Setting,
   SettingSchema,
+  StudentEnrolledCourse,
+  StudentEnrolledCourseSchema,
   TeacherEnrolledCourse,
   TeacherEnrolledCourseSchema,
   User,
@@ -27,6 +29,7 @@ import { ConfigModule, ConfigService } from '@nestjs/config';
       { name: Setting.name, schema: SettingSchema },
       { name: Course.name, schema: CourseSchema },
       { name: TeacherEnrolledCourse.name, schema: TeacherEnrolledCourseSchema },
+      { name: StudentEnrolledCourse.name, schema: StudentEnrolledCourseSchema },
     ]),
     MongooseModule.forRootAsync({
       imports: [ConfigModule],

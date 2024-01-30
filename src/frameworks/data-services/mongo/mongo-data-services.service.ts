@@ -12,6 +12,8 @@ import {
   SchoolDocument,
   Setting,
   SettingDocument,
+  StudentEnrolledCourse,
+  StudentEnrolledCourseDocument,
   TeacherEnrolledCourse,
   TeacherEnrolledCourseDocument,
   User,
@@ -28,6 +30,7 @@ export class MongoDataServices
   settings: MongoGenericRepository<Setting>;
   courses: MongoGenericRepository<Course>;
   teacherEnrolledCourses: MongoGenericRepository<TeacherEnrolledCourse>;
+  studentEnrolledCourses: MongoGenericRepository<StudentEnrolledCourse>;
 
   constructor(
     @InjectModel(User.name)
@@ -42,6 +45,8 @@ export class MongoDataServices
     private CourseRepository: Model<CourseDocument>,
     @InjectModel(TeacherEnrolledCourse.name)
     private TeacherEnrolledCourseRepository: Model<TeacherEnrolledCourseDocument>,
+    @InjectModel(StudentEnrolledCourse.name)
+    private StudentEnrolledCourseRepository: Model<StudentEnrolledCourseDocument>,
   ) {}
 
   onApplicationBootstrap() {
@@ -55,6 +60,10 @@ export class MongoDataServices
     this.teacherEnrolledCourses =
       new MongoGenericRepository<TeacherEnrolledCourse>(
         this.TeacherEnrolledCourseRepository,
+      );
+    this.studentEnrolledCourses =
+      new MongoGenericRepository<StudentEnrolledCourse>(
+        this.StudentEnrolledCourseRepository,
       );
   }
 }

@@ -17,4 +17,6 @@ export abstract class IGenericRepository<T> {
   abstract delete(id: Types.ObjectId);
 
   abstract insertMany(item: T[]);
+
+  abstract findAggregate(aggregrate: any, page: number, pageSize: number);
 }

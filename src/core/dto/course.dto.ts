@@ -5,6 +5,7 @@ import {
   IsNumber,
   IsNumberString,
   IsString,
+  Max,
   MaxLength,
   Min,
   MinLength,
@@ -54,6 +55,29 @@ export class EnrollCourseTeacherDto {
   courses: Types.ObjectId[];
 }
 
+export class EnrollCourseStudentDto {
+  @ApiProperty({
+    type: String,
+
+    isArray: true,
+  })
+  @Validate(IsMongoIdArray)
+  courses: Types.ObjectId[];
+
+  @ApiProperty({ required: true })
+  @IsString()
+  @IsNotEmpty()
+  year: string;
+}
 export class UpdateCourseDto extends PartialType(
   OmitType(CreateCourseDto, ['department', 'yearTaken']),
 ) {}
+
+export class UpdateScoreDto {
+  @ApiProperty({ required: true })
+  @IsNumber()
+  @IsNotEmpty()
+  @Max(100, { message: 'Max score is 100' })
+  @Min(-2, { message: 'Min score is -2' })
+  score: number;
+}

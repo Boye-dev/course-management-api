@@ -18,4 +18,7 @@ export class SettingUseCases {
       userId,
     );
   }
+  async getSettings(id: Types.ObjectId) {
+    return await this.settingFactoryServices.getSettings(id);
+  }
 }

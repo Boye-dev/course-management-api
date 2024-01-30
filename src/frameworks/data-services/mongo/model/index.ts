@@ -4,3 +4,4 @@ export * from './school.model';
 export * from './settings.model';
 export * from './course.model';
 export * from './teacherEnrolledCourse.model';
+export * from './studentEnrolledCourse.model';

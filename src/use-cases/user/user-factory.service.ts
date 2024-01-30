@@ -161,6 +161,10 @@ export class UserFactoryService {
     existingUser.verified = true;
     existingUser.status = StatusEnum.Active;
     existingUser.verificationToken = undefined;
+    existingUser.markModified('verificationToken');
+    existingUser.markModified('status');
+    existingUser.markModified('verified');
+
     await existingUser.save();
 
     return existingUser.toJSON();
@@ -182,6 +186,8 @@ export class UserFactoryService {
 
     existingUser.resetPasswordToken = resetPasswordToken;
     existingUser.resetPasswordExpires = resetPasswordExpires;
+    existingUser.markModified('resetPasswordExpires');
+    existingUser.markModified('resetPasswordToken');
 
     return await existingUser.save();
   }
@@ -207,6 +213,9 @@ export class UserFactoryService {
     existingUser.password = hashedPassword;
     existingUser.resetPasswordToken = undefined;
     existingUser.resetPasswordExpires = undefined;
+    existingUser.markModified('resetPasswordExpires');
+    existingUser.markModified('resetPasswordToken');
+    existingUser.markModified('password');
 
     return await existingUser.save();
   }

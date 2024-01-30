@@ -89,6 +89,8 @@ export class AuthFactoryService {
       }
       existingUser.otpToken = undefined;
       existingUser.otpTokenExpires = undefined;
+      existingUser.markModified('otpToken');
+      existingUser.markModified('otpTokenExpires');
 
       await existingUser.save();
 
