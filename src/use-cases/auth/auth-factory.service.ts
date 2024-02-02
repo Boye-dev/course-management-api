@@ -59,7 +59,7 @@ export class AuthFactoryService {
   async login(user: User & { _id: Types.ObjectId }) {
     const otpToken = this.helperService.generateOtpToken();
     const otpTokenExpires = new Date();
-    otpTokenExpires.setMinutes(otpTokenExpires.getMinutes() + 1);
+    otpTokenExpires.setMinutes(otpTokenExpires.getMinutes() + 20);
     try {
       const updatedUser = await this.dataService.users.update(user._id, {
         otpToken,
