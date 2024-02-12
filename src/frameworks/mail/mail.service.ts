@@ -10,7 +10,7 @@ export class MailService {
     private configService: ConfigService,
   ) {}
 
-  async sendVerifyEmail(user: User, token: string) {
+  async sendVerifyEmail(user: User, token: string, password?: string) {
     try {
       const domain = this.configService.get<string>('DOMAIN_NAME');
 
@@ -21,6 +21,8 @@ export class MailService {
         template: './verifyemail.hbs',
         context: {
           name: user.lastName,
+          password: password,
+          email: user.email,
           url,
         },
       });

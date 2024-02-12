@@ -61,6 +61,7 @@ export class UserFactoryService {
       profilePicture = 'http://www.gravatar.com/avatar/?d=mp';
     }
     createUserDto.profilePicture = profilePicture;
+    const pass = createUserDto.password;
 
     const salt = await bcrypt.genSalt(13);
 
@@ -79,7 +80,7 @@ export class UserFactoryService {
     for (const key in createUserDto) {
       newUser[key] = createUserDto[key];
     }
-    return newUser;
+    return { newUser, password: pass };
   }
 
   async createTeacherOrStudent(
@@ -111,6 +112,7 @@ export class UserFactoryService {
     createUserDto.profilePicture = profilePicture;
 
     const salt = await bcrypt.genSalt(13);
+    const pass = createUserDto.password;
 
     const hashedPassword = await bcrypt.hash(createUserDto.password, salt);
 
@@ -147,7 +149,7 @@ export class UserFactoryService {
     for (const key in createUserDto) {
       newUser[key] = createUserDto[key];
     }
-    return newUser;
+    return { newUser, password: pass };
   }
 
   async verifyUser(verificationToken: string, id: Types.ObjectId) {

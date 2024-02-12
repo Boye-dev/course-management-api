@@ -28,9 +28,13 @@ export class UserUseCases {
       file,
     );
 
-    const createdUser = await this.dataService.users.create(user);
+    const createdUser = await this.dataService.users.create(user.newUser);
 
-    await this.mailService.sendVerifyEmail(createdUser, user.verificationToken);
+    await this.mailService.sendVerifyEmail(
+      createdUser,
+      user.newUser.verificationToken,
+      user.password,
+    );
 
     return createdUser;
   }
@@ -44,9 +48,13 @@ export class UserUseCases {
       file,
     );
 
-    const createdUser = await this.dataService.users.create(user);
+    const createdUser = await this.dataService.users.create(user.newUser);
 
-    await this.mailService.sendVerifyEmail(user, user.verificationToken);
+    await this.mailService.sendVerifyEmail(
+      createdUser,
+      user.newUser.verificationToken,
+      user.password,
+    );
 
     return createdUser;
   }
