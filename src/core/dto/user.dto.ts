@@ -191,4 +191,5 @@ export enum UserEnum {
   lastName = 'lastName',
   middleName = 'middleName',
   email = 'email',
+  yearOfAdmission = 'yearOfAdmission',
 }

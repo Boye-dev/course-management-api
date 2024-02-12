@@ -106,13 +106,17 @@ export class UserController {
     description: 'Json structure for user object',
   })
   @ApiParam({ name: 'token' })
-  @Patch('reset-password/:token')
+  @ApiParam({ name: 'id' })
+  @Patch('reset-password/:token/:id')
   async resetPassword(
     @Body('password') password: string,
     @Param('token') token: string,
+    @Param() params: IdParamsDto,
   ) {
+    const { id } = params;
+
     try {
-      return this.userUseCases.resetPassword(password, token);
+      return this.userUseCases.resetPassword(password, token, id);
     } catch (error) {
       console.log(error);
       throw new InternalServerErrorException('Something went wrong');
@@ -163,10 +167,15 @@ export class UserController {
       );
     }
   }
-  @Get('verify/token/:token')
-  async verifyEmail(@Param('token') token: string) {
+  @Get('verify/token/:token/:id')
+  async verifyEmail(
+    @Param('token') token: string,
+    @Param() params: IdParamsDto,
+  ) {
     try {
-      return this.userUseCases.verifyUser(token);
+      const { id } = params;
+
+      return this.userUseCases.verifyUser(token, id);
     } catch (error) {
       console.log(error);
       throw new InternalServerErrorException(

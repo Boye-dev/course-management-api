@@ -54,8 +54,7 @@ export class DepartmentController {
     return this.departmentUseCases.editDepartment(updateDepartmentDto, id);
   }
 
-  @HasRoles(RolesEnum.Admin)
-  @UseGuards(JwtGuard, RolesGuard)
+  @UseGuards(JwtGuard)
   @Get()
   async getAll(@Query() query: DepartmentQueryDto) {
     return this.departmentUseCases.getAll(query);

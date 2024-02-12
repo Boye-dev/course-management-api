@@ -46,7 +46,7 @@ export class CourseController {
     description: 'Course object json',
   })
   @ApiParam({ name: 'id', description: 'Teacher Id' })
-  @HasRoles(RolesEnum.Teacher)
+  @HasRoles(RolesEnum.Admin)
   @UseGuards(JwtGuard, RolesGuard)
   @Post('enroll/:id')
   async teacherEnroll(

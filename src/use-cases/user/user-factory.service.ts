@@ -33,6 +33,7 @@ export class UserFactoryService {
     private awsService: AwsService,
     private helperService: HelperService,
   ) {}
+
   async createNewUsers(
     createUserDto: CreateUserDto,
     file: Express.Multer.File,
@@ -149,14 +150,13 @@ export class UserFactoryService {
     return newUser;
   }
 
-  async verifyUser(verificationToken: string) {
+  async verifyUser(verificationToken: string, id: Types.ObjectId) {
     const existingUser = await this.dataService.users.findOne({
+      _id: id,
       verificationToken,
     });
     if (!existingUser) {
-      throw new BadRequestException(
-        `User with email: ${existingUser.email} does not exists`,
-      );
+      throw new BadRequestException(`Bad verification `);
     }
     existingUser.verified = true;
     existingUser.status = StatusEnum.Active;
@@ -175,7 +175,7 @@ export class UserFactoryService {
     });
     if (!existingUser) {
       throw new BadRequestException(
-        `User with email: ${existingUser.email} does not exists`,
+        `User with email: ${email} does not exists`,
       );
     }
 
@@ -192,17 +192,23 @@ export class UserFactoryService {
     return await existingUser.save();
   }
 
-  async resetPassword(password: string, token: string) {
+  async resetPassword(password: string, token: string, id: Types.ObjectId) {
     const existingUser = await this.dataService.users.findOne({
+      _id: id,
       resetPasswordToken: token,
     });
     if (!existingUser) {
-      throw new BadRequestException(`Password reset token has expired`);
+      throw new BadRequestException(`User not found`);
     }
     if (
       !existingUser.resetPasswordExpires ||
       existingUser.resetPasswordExpires < new Date()
     ) {
+      existingUser.resetPasswordToken = undefined;
+      existingUser.resetPasswordExpires = undefined;
+      existingUser.markModified('resetPasswordExpires');
+      existingUser.markModified('resetPasswordToken');
+      await existingUser.save();
       throw new BadRequestException('Password reset token has expired');
     }
 

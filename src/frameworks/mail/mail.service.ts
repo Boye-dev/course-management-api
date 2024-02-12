@@ -1,14 +1,20 @@
 import { MailerService } from '@nestjs-modules/mailer';
 import { Injectable, InternalServerErrorException } from '@nestjs/common';
+import { ConfigService } from '@nestjs/config';
 import { User } from 'src/core';
 
 @Injectable()
 export class MailService {
-  constructor(private mailerService: MailerService) {}
+  constructor(
+    private mailerService: MailerService,
+    private configService: ConfigService,
+  ) {}
 
   async sendVerifyEmail(user: User, token: string) {
     try {
-      const url = `https://nexus-frontend-rho.vercel.app/verify-user/?token=${token}`;
+      const domain = this.configService.get<string>('DOMAIN_NAME');
+
+      const url = `${domain}/verify-user/?token=${token}&id=${user._id}`;
       await this.mailerService.sendMail({
         to: user.email,
         subject: 'Verify Your Email',
@@ -43,7 +49,9 @@ export class MailService {
 
   async sendForgotPasswordEmail(user: User, token: string) {
     try {
-      const url = `https://nexus-frontend-rho.vercel.app/resetPassword?token=${token}`;
+      const domain = this.configService.get<string>('DOMAIN_NAME');
+
+      const url = `${domain}/resetPassword?token=${token}&id=${user._id}`;
       await this.mailerService.sendMail({
         to: user.email,
         subject: 'Password Reset',

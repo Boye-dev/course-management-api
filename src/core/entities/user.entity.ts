@@ -7,6 +7,8 @@ import {
 } from 'src/core/interfaces/user.interfaces';
 
 export class User {
+  _id: Types.ObjectId;
+
   firstName: string;
 
   middleName: string;

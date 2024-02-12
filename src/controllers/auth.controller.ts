@@ -7,6 +7,7 @@ import {
   UseGuards,
 } from '@nestjs/common';
 import { ApiBody, ApiParam, ApiTags } from '@nestjs/swagger';
+import { User } from 'src/core';
 import {
   IdParamsDto,
   LoginDto,
@@ -32,6 +33,10 @@ export class AuthController {
     return await this.authUseCases.login(req.user);
   }
 
+  @Post('resend-otp')
+  async otpResend(@Body() user: User) {
+    return await this.authUseCases.resetOtp(user);
+  }
   @ApiBody({
     type: RefreshDto,
     description: 'Json structure for auth object',

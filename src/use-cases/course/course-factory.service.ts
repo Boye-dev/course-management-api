@@ -151,6 +151,9 @@ export class CourseFactoryService {
       if (query.yearTaken) {
         operation.push({ yearTaken: Number(query.yearTaken) });
       }
+      if (query.units) {
+        operation.push({ units: Number(query.units) });
+      }
       if (operation.length > 0) {
         queries.findOperation = {
           $and: operation,
@@ -360,7 +363,7 @@ export class CourseFactoryService {
       if (!user) {
         throw new BadRequestException(`User not found`);
       }
-      const queries: QueryDto = {
+      const param: QueryDto = {
         search: query.search,
         searchBy: Array.isArray(query.searchBy)
           ? query.searchBy
@@ -373,12 +376,128 @@ export class CourseFactoryService {
           teacher: teacherId,
         },
       };
-      return await this.dataServices.teacherEnrolledCourses.findAll(queries, {
-        path: 'course',
-        populate: {
-          path: 'department',
+      const operation = [];
+      if (query.units) {
+        operation.push({
+          'course.course.units': Number(query.units),
+        });
+      }
+      operation.push({ teacher: new mongoose.Types.ObjectId(teacherId) });
+      if (operation.length > 0) {
+        param.findOperation = {
+          $and: operation,
+        };
+      }
+      const page = param?.page - 1 || 0;
+      const pageSize = param?.pageSize || 10;
+
+      const search = param?.search || '';
+      const searchBy = param?.searchBy || [];
+      const searchObject = [];
+
+      for (const option of searchBy) {
+        const optionObj = {};
+        optionObj[option] = { $regex: search, $options: 'i' };
+        searchObject.push(optionObj);
+      }
+
+      const findOperation = param?.findOperation;
+
+      const sortBy = param?.sortBy || null;
+      let match: Record<any, any>;
+      if (searchObject.length > 0) {
+        match = { $and: [{ $or: searchObject }, { ...findOperation }] };
+      } else {
+        match = { ...findOperation };
+      }
+      const aggregrate = [
+        {
+          $facet: {
+            total: [
+              {
+                $lookup: {
+                  from: 'courses',
+                  localField: 'course',
+                  foreignField: '_id',
+                  as: 'course',
+                },
+              },
+              {
+                $unwind: '$course',
+              },
+              {
+                $lookup: {
+                  from: 'departments',
+                  localField: 'course.department',
+                  foreignField: '_id',
+                  as: 'course.department',
+                },
+              },
+              {
+                $unwind: '$course.department',
+              },
+
+              {
+                $match: match,
+              },
+
+              {
+                $count: 'total',
+              },
+            ],
+            documents: [
+              {
+                $lookup: {
+                  from: 'courses',
+                  localField: 'course',
+                  foreignField: '_id',
+                  as: 'course',
+                },
+              },
+              {
+                $unwind: '$course',
+              },
+              {
+                $lookup: {
+                  from: 'departments',
+                  localField: 'course.department',
+                  foreignField: '_id',
+                  as: 'course.department',
+                },
+              },
+              {
+                $unwind: '$course.department',
+              },
+
+              {
+                $match: match,
+              },
+              {
+                $sort: {
+                  [sortBy]:
+                    param?.sortOrder === 'asc'
+                      ? 1
+                      : param?.sortOrder === 'desc'
+                        ? -1
+                        : 1,
+                },
+              },
+              {
+                $skip: page * pageSize,
+              },
+              {
+                $limit: pageSize,
+              },
+            ],
+          },
         },
-      });
+      ];
+
+      return await this.dataServices.teacherEnrolledCourses.findAggregate(
+        aggregrate,
+        page,
+        pageSize,
+      );
     } catch (error) {
       throw new InternalServerErrorException(error?.message);
     }
@@ -403,18 +522,35 @@ export class CourseFactoryService {
         if (Array.isArray(query.department)) {
           query.department.forEach((sch) =>
             departmentObj.push({
-              'course.department._id': new mongoose.Types.ObjectId(sch),
+              'teacher.department._id': new mongoose.Types.ObjectId(sch),
             }),
           );
         } else {
           departmentObj.push({
-            'course.department._id': new mongoose.Types.ObjectId(
+            'teacher.department._id': new mongoose.Types.ObjectId(
               query.department,
             ),
           });
         }
         operation.push({ $or: [...departmentObj] });
       }
+
+      if (query.course) {
+        const courseObj = [];
+        if (Array.isArray(query.course)) {
+          query.course.forEach((crs) =>
+            courseObj.push({
+              'course._id': new mongoose.Types.ObjectId(crs),
+            }),
+          );
+        } else {
+          courseObj.push({
+            'course._id': new mongoose.Types.ObjectId(query.course),
+          });
+        }
+        operation.push({ $or: [...courseObj] });
+      }
+
       if (query.yearTaken) {
         operation.push({
           'course.yearTaken': Number(query.yearTaken),
@@ -435,10 +571,9 @@ export class CourseFactoryService {
 
       for (const option of searchBy) {
         const optionObj = {};
-        optionObj[`course.${option}`] = { $regex: search, $options: 'i' };
+        optionObj[option] = { $regex: search, $options: 'i' };
         searchObject.push(optionObj);
       }
-
       const findOperation = param?.findOperation;
 
       const sortBy = param?.sortBy || null;
@@ -448,10 +583,33 @@ export class CourseFactoryService {
       } else {
         match = { ...findOperation };
       }
+
       const aggregrate = [
         {
           $facet: {
             total: [
+              {
+                $lookup: {
+                  from: 'users',
+                  localField: 'teacher',
+                  foreignField: '_id',
+                  as: 'teacher',
+                },
+              },
+              {
+                $unwind: '$teacher',
+              },
+              {
+                $lookup: {
+                  from: 'departments',
+                  localField: 'teacher.department',
+                  foreignField: '_id',
+                  as: 'teacher.department',
+                },
+              },
+              {
+                $unwind: '$teacher.department',
+              },
               {
                 $lookup: {
                   from: 'courses',
@@ -580,21 +738,41 @@ export class CourseFactoryService {
         if (Array.isArray(query.department)) {
           query.department.forEach((sch) =>
             departmentObj.push({
-              'course.department._id': new mongoose.Types.ObjectId(sch),
+              'course.course.department._id': new mongoose.Types.ObjectId(sch),
             }),
           );
         } else {
           departmentObj.push({
-            'course.department._id': new mongoose.Types.ObjectId(
+            'course.course.department._id': new mongoose.Types.ObjectId(
               query.department,
             ),
           });
         }
         operation.push({ $or: [...departmentObj] });
       }
+      if (query.grade) {
+        const gradeObj = [];
+        if (Array.isArray(query.grade)) {
+          query.grade.forEach((sch) =>
+            gradeObj.push({
+              grade: sch,
+            }),
+          );
+        } else {
+          gradeObj.push({
+            grade: query.grade,
+          });
+        }
+        operation.push({ $or: [...gradeObj] });
+      }
       if (query.yearTaken) {
         operation.push({
-          year: Number(query.yearTaken),
+          year: query.yearTaken,
+        });
+      }
+      if (query.units) {
+        operation.push({
+          'course.course.units': Number(query.units),
         });
       }
       operation.push({ student: new mongoose.Types.ObjectId(studentId) });
@@ -612,7 +790,7 @@ export class CourseFactoryService {
 
       for (const option of searchBy) {
         const optionObj = {};
-        optionObj[`course.${option}`] = { $regex: search, $options: 'i' };
+        optionObj[option] = { $regex: search, $options: 'i' };
         searchObject.push(optionObj);
       }
 
@@ -672,78 +850,6 @@ export class CourseFactoryService {
               },
               {
                 $unwind: '$course.teacher.department',
-              },
-              {
-                $match: match,
-              },
-              {
-                $count: 'total',
-              },
-            ],
-            documents: [
-              {
-                $lookup: {
-                  from: 'teacherenrolledcourses',
-                  localField: 'course',
-                  foreignField: '_id',
-                  as: 'course',
-                },
-              },
-              {
-                $unwind: '$course',
-              },
-              {
-                $lookup: {
-                  from: 'courses',
-                  localField: 'course.course',
-                  foreignField: '_id',
-                  as: 'course.course',
-                },
-              },
-              {
-                $unwind: '$course.course',
-              },
-              {
-                $lookup: {
-                  from: 'users',
-                  localField: 'course.teacher',
-                  foreignField: '_id',
-                  as: 'course.teacher',
-                },
-              },
-              {
-                $unwind: '$course.teacher',
-              },
-              {
-                $lookup: {
-                  from: 'departments',
-                  localField: 'course.teacher.department',
-                  foreignField: '_id',
-                  as: 'course.teacher.department',
-                },
-              },
-              {
-                $unwind: '$course.teacher.department',
-              },
-
-              {
-                $match: match,
-              },
-              {
-                $sort: {
-                  [sortBy]:
-                    param?.sortOrder === 'asc'
-                      ? 1
-                      : param?.sortOrder === 'desc'
-                        ? -1
-                        : 1,
-                },
-              },
-              {
-                $skip: page * pageSize,
-              },
-              {
-                $limit: pageSize,
               },
               {
                 $addFields: {
@@ -857,6 +963,190 @@ export class CourseFactoryService {
                   },
                 },
               },
+              {
+                $match: match,
+              },
+
+              {
+                $count: 'total',
+              },
+            ],
+            documents: [
+              {
+                $lookup: {
+                  from: 'teacherenrolledcourses',
+                  localField: 'course',
+                  foreignField: '_id',
+                  as: 'course',
+                },
+              },
+              {
+                $unwind: '$course',
+              },
+              {
+                $lookup: {
+                  from: 'courses',
+                  localField: 'course.course',
+                  foreignField: '_id',
+                  as: 'course.course',
+                },
+              },
+              {
+                $unwind: '$course.course',
+              },
+              {
+                $lookup: {
+                  from: 'users',
+                  localField: 'course.teacher',
+                  foreignField: '_id',
+                  as: 'course.teacher',
+                },
+              },
+              {
+                $unwind: '$course.teacher',
+              },
+              {
+                $lookup: {
+                  from: 'departments',
+                  localField: 'course.teacher.department',
+                  foreignField: '_id',
+                  as: 'course.teacher.department',
+                },
+              },
+              {
+                $unwind: '$course.teacher.department',
+              },
+              {
+                $addFields: {
+                  grade: {
+                    $switch: {
+                      branches: [
+                        { case: { $eq: ['$score', -2] }, then: 'NG' },
+                        { case: { $eq: ['$score', -1] }, then: 'F1' },
+                        {
+                          case: {
+                            $and: [
+                              { $gte: ['$score', 0] },
+                              { $lte: ['$score', 39] },
+                            ],
+                          },
+                          then: 'F',
+                        },
+                        {
+                          case: {
+                            $and: [
+                              { $gte: ['$score', 40] },
+                              { $lte: ['$score', 44] },
+                            ],
+                          },
+                          then: 'E',
+                        },
+                        {
+                          case: {
+                            $and: [
+                              { $gte: ['$score', 45] },
+                              { $lte: ['$score', 49] },
+                            ],
+                          },
+                          then: 'D',
+                        },
+                        {
+                          case: {
+                            $and: [
+                              { $gte: ['$score', 50] },
+                              { $lte: ['$score', 59] },
+                            ],
+                          },
+                          then: 'C',
+                        },
+                        {
+                          case: {
+                            $and: [
+                              { $gte: ['$score', 60] },
+                              { $lte: ['$score', 79] },
+                            ],
+                          },
+                          then: 'B',
+                        },
+                        {
+                          case: {
+                            $and: [
+                              { $gte: ['$score', 80] },
+                              { $lte: ['$score', 100] },
+                            ],
+                          },
+                          then: 'A',
+                        },
+                      ],
+                      default: 'NG',
+                    },
+                  },
+                },
+              },
+
+              {
+                $addFields: {
+                  gp: {
+                    $switch: {
+                      branches: [
+                        { case: { $eq: ['$score', -2] }, then: 'NG' },
+                        { case: { $eq: ['$score', -1] }, then: '0' },
+                      ],
+                      default: {
+                        $switch: {
+                          branches: [
+                            {
+                              case: { $eq: ['$grade', 'A'] },
+                              then: { $multiply: ['$course.course.units', 5] },
+                            },
+
+                            {
+                              case: { $eq: ['$grade', 'B'] },
+                              then: { $multiply: ['$course.course.units', 4] },
+                            },
+                            {
+                              case: { $eq: ['$grade', 'C'] },
+                              then: { $multiply: ['$course.course.units', 3] },
+                            },
+                            {
+                              case: { $eq: ['$grade', 'D'] },
+                              then: { $multiply: ['$course.course.units', 2] },
+                            },
+                            {
+                              case: { $eq: ['$grade', 'E'] },
+                              then: { $multiply: ['$course.course.units', 1] },
+                            },
+                            {
+                              case: { $eq: ['$grade', 'F'] },
+                              then: { $multiply: ['$course.course.units', 0] },
+                            },
+                          ],
+                          default: 0,
+                        },
+                      },
+                    },
+                  },
+                },
+              },
+              {
+                $match: match,
+              },
+              {
+                $sort: {
+                  [sortBy]:
+                    param?.sortOrder === 'asc'
+                      ? 1
+                      : param?.sortOrder === 'desc'
+                        ? -1
+                        : 1,
+                },
+              },
+              {
+                $skip: page * pageSize,
+              },
+              {
+                $limit: pageSize,
+              },
             ],
           },
         },
@@ -936,7 +1226,7 @@ export class CourseFactoryService {
 
       for (const option of searchBy) {
         const optionObj = {};
-        optionObj[`course.${option}`] = { $regex: search, $options: 'i' };
+        optionObj[option] = { $regex: search, $options: 'i' };
         searchObject.push(optionObj);
       }
 
@@ -953,6 +1243,17 @@ export class CourseFactoryService {
         {
           $facet: {
             total: [
+              {
+                $lookup: {
+                  from: 'users',
+                  localField: 'student',
+                  foreignField: '_id',
+                  as: 'student',
+                },
+              },
+              {
+                $unwind: '$student',
+              },
               {
                 $lookup: {
                   from: 'teacherenrolledcourses',

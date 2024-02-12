@@ -101,13 +101,28 @@ export class CourseQueryDto extends MainQueryDto {
   department?: string[];
 
   @ApiProperty({
+    type: String,
+    isArray: true,
+    required: false,
+  })
+  @IsOptional()
+  grade?: string[];
+
+  @ApiProperty({
+    type: String,
+    isArray: true,
+    required: false,
+  })
+  @IsOptional()
+  course?: string[];
+
+  @ApiProperty({
     type: [String],
     enum: CourseEnum,
     isArray: true,
     required: false,
   })
   @IsOptional()
-  @IsEnum(CourseEnum, { each: true })
   searchBy?: string[];
 
   @ApiProperty({
@@ -124,11 +139,10 @@ export class CourseQueryDto extends MainQueryDto {
     required: false,
   })
   @IsOptional()
-  units: number;
+  units: number[];
 
   @ApiProperty({ required: false })
   @IsString()
-  @IsEnum(CourseEnum)
   @IsOptional()
   sortBy?: string;
 }

@@ -11,6 +11,10 @@ export class AuthUseCases {
     return await this.authFactoryService.login(user);
   }
 
+  async resetOtp(user: User & { _id: Types.ObjectId }) {
+    return await this.authFactoryService.login(user);
+  }
+
   async refreshToken(user: User & { id: Types.ObjectId }) {
     return await this.authFactoryService.refreshToken(user);
   }

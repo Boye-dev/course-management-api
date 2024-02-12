@@ -30,7 +30,7 @@ export class UserUseCases {
 
     const createdUser = await this.dataService.users.create(user);
 
-    await this.mailService.sendVerifyEmail(user, user.verificationToken);
+    await this.mailService.sendVerifyEmail(createdUser, user.verificationToken);
 
     return createdUser;
   }
@@ -60,8 +60,8 @@ export class UserUseCases {
   async getAllTeachers(query?: TeacherQueryDto) {
     return await this.userFactoryService.getAllTeachers(query);
   }
-  async verifyUser(token: string) {
-    return await this.userFactoryService.verifyUser(token);
+  async verifyUser(token: string, id: Types.ObjectId) {
+    return await this.userFactoryService.verifyUser(token, id);
   }
 
   async forgotPassword(email: string) {
@@ -75,8 +75,12 @@ export class UserUseCases {
     return user.toJSON();
   }
 
-  async resetPassword(password: string, token: string) {
-    const user = await this.userFactoryService.resetPassword(password, token);
+  async resetPassword(password: string, token: string, id: Types.ObjectId) {
+    const user = await this.userFactoryService.resetPassword(
+      password,
+      token,
+      id,
+    );
 
     return user.toJSON();
   }
